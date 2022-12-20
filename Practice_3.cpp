@@ -1,54 +1,39 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <string>
 
 
-bool check_u(char c)
-{
-	return 'А' <= c <= 'Я';
+
+bool is_up(char c) {
+	return c >= 'А' && c <= 'Я';
 }
 
-
-bool check_l(char c)
-{
-	return 'а' <= c <= 'я';
+bool is_low(char c) {
+	return c >= 'а' && c <= 'я';
 }
 
+bool is_l(char c) {
+	return is_up(c) || is_low(c);
+}
 
-char upper(char c)
-{
-	if (check_l(c))
-	{
+char up(char c) {
+	if (is_low(c) && is_l(c)) {
 		return c - 32;
 	}
 	return c;
 }
 
-
-char lower(char c)
-{
-	if (check_u(c))
-	{
+char low(char c) {
+	if (is_up(c) && is_l(c)) {
 		return c + 32;
 	}
 	return c;
 }
 
-
-bool check_let(char c)
-{
-	return check_u(c) or check_l(c);
-}
-
-
-bool check(std::string word, char max_l[])
-{
-	for (int i = 0; i < word.size(); i++)
-	{
-		if (strchr(max_l, lower(word[i])) == 0)
-		{
-			if (check_let(word[i]))
-			{
+bool check(std::string word, char max_l[]) {
+	for (int i = 0; i < word.size(); i++) {
+		if (strchr(max_l, low(word[i])) == 0) {
+			if (is_l(word[i])) {
 				return true;
 			}
 		}
@@ -57,108 +42,104 @@ bool check(std::string word, char max_l[])
 }
 
 
+
 int main()
 {
-	setlocale(LC_ALL, "rus");
-
+	setlocale(LC_ALL, "Russian");
 	std::string str;
-	int max = 0, max_count = 0, count, len;
-	char max_l[33], letters[33];
-
-	std::ifstream file("input.txt", std::ios::in);
-
+	std::ifstream file("input.txt");
+	int max_len = 0;
+	int max_count = 0;
+	char max_l[33];
+	for (int i = 0; i < 33; i++)
+	{
+		max_l[i] = ' ';
+	}
+	char let[33];
 	while (!file.eof())
 	{
 		file >> str;
-
-		count = 0;
-		len = 0;
-		for (int k = 0; k < 33; k++)
+		for (int i = 0; i < 33; i++)
 		{
-			letters[k] = ' ';
+			let[i] = ' ';
 		}
-
+		int count = 0;
+		int len = 0;
 		for (int i = 0; i < str.size(); i++)
 		{
-			if (check_let(str[i]))
+			if (is_l(str[i]))
 			{
 				len++;
-				if (strchr(letters, lower(str[i])) == 0)
+				if (strchr(let, low(str[i])) == 0)
 				{
-					letters[count] = lower(str[i]);
+					let[count] = low(str[i]);
 					count++;
 				}
 			}
 		}
-		if (len > max)
+		if (len > max_len)
 		{
 			for (int i = 0; i < max_count; i++)
 			{
 				max_l[i] = ' ';
 			}
-			max = len;
+			max_len = len;
 			max_count = count;
 			for (int i = 0; i < count; i++)
 			{
-				max_l[i] = letters[i];
+				max_l[i] = let[i];
 			}
 		}
-		else if (len == max)
+		else if (len == max_len)
 		{
 			for (int i = 0; i < count; i++)
 			{
-				if (strchr(max_l, letters[i]) == 0)
+				if (strchr(max_l, let[i]) == 0)
 				{
-					max_l[max_count] = letters[i];
+					max_l[max_count] = let[i];
 					max_count++;
 				}
 			}
 		}
 	}
-
 	file.close();
-
-	std::ifstream f_i("input.txt", std::ios::in);
-	std::ofstream f_o("output.txt", std::ios::out);
-
-	while (!f_i.eof())
+	file.open("input.txt");
+	std::ofstream out("output.txt");
+	while (!file.eof())
 	{
-		f_i >> str;
-
-		for (int k = 0; k < 33; k++)
+		file >> str;
+		for (int i = 0; i < 33; i++)
 		{
-			letters[k] = ' ';
+			let[i] = ' ';
 		}
-		count = 0;
-
+		int count = 0;
 		if (check(str, max_l))
 		{
 			for (int i = 0; i < str.size(); i++)
 			{
-				if (strchr(max_l, lower(str[i])) == 0)
+				if (strchr(max_l, low(str[i])) == 0)
 				{
-					if (strchr(letters, upper(str[i])) == 0)
+					if (strchr(let, up(str[i])) == 0)
 					{
-						if (check_let(str[i]))
+						if (is_l(str[i]))
 						{
-							letters[count] = upper(str[i]);
+							let[count] = up(str[i]);
 							count++;
 						}
 					}
 				}
-				f_o << upper(str[i]);
+				out << up(str[i]);
 			}
-			f_o << "(";
+			out << "(";
 			for (int i = 0; i < count; i++)
 			{
-				f_o << letters[i];
+				out << let[i];
 			}
-			f_o << ") ";
+			out << ") ";
 		}
 		else
 		{
-			f_o << str << " ";
+			out << str << " ";
 		}
 	}
-	return 0;
 }
